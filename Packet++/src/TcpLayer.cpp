@@ -3,6 +3,7 @@
 #include "TcpLayer.h"
 #include "IPv4Layer.h"
 #include "IPv6Layer.h"
+#include "DnsLayer.h"
 #include "PayloadLayer.h"
 #include "HttpLayer.h"
 #include "SSLLayer.h"
@@ -343,6 +344,8 @@ void TcpLayer::parseNextLayer()
 		m_NextLayer = new HttpRequestLayer(payload, payloadLen, this, m_Packet);
 	else if ((HttpMessage::getHTTPPortMap()->find(portSrc) != HttpMessage::getHTTPPortMap()->end()) && HttpResponseFirstLine::parseStatusCode((char*)payload, payloadLen) != HttpResponseLayer::HttpStatusCodeUnknown)
 		m_NextLayer = new HttpResponseLayer(m_Data + headerLen, m_DataLen - headerLen, this, m_Packet);
+	else if ((payloadLen >= sizeof(dnshdr)) && (DnsLayer::getDNSPortMap()->find(portDst) != DnsLayer::getDNSPortMap()->end() || DnsLayer::getDNSPortMap()->find(portSrc) != DnsLayer::getDNSPortMap()->end()))
+		m_NextLayer = new DnsLayer(payload, payloadLen, this, m_Packet);
 	else if (SSLLayer::IsSSLMessage(portSrc, portDst, payload, payloadLen))
 		m_NextLayer = SSLLayer::createSSLMessage(payload, payloadLen, this, m_Packet);
 	else if (((portDst == 5060) || (portDst == 5061)) && (SipRequestFirstLine::parseMethod((char*)payload, payloadLen) != SipRequestLayer::SipMethodUnknown))

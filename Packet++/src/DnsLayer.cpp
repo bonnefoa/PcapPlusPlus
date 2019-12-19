@@ -109,6 +109,13 @@ DnsLayer::~DnsLayer()
 	}
 }
 
+dnshdr* DnsLayer::getDnsHeader() const {
+    if (m_IsTcp) {
+        return (dnshdr*)(m_Data + 2);
+    };
+    return (dnshdr*)m_Data;
+}
+
 bool DnsLayer::extendLayer(int offsetInLayer, size_t numOfBytesToExtend, IDnsResource* resource)
 {
 	if (!Layer::extendLayer(offsetInLayer, numOfBytesToExtend))
@@ -142,6 +149,10 @@ bool DnsLayer::shortenLayer(int offsetInLayer, size_t numOfBytesToShorten, IDnsR
 void DnsLayer::parseResources()
 {
 	size_t offsetInPacket = sizeof(dnshdr);
+    m_IsTcp = getPrevLayer()->getProtocol() == TCP;
+    if (m_IsTcp) {
+        offsetInPacket+=2;
+    }
 	IDnsResource* curResource = m_ResourceList;
 
 	uint16_t numOfQuestions = ntohs(getDnsHeader()->numberOfQuestions);
@@ -151,9 +162,9 @@ void DnsLayer::parseResources()
 
 	uint16_t numOfOtherResources = numOfQuestions + numOfAnswers + numOfAuthority + numOfAdditional;
 
-	if (numOfOtherResources > 300)
+	if (numOfOtherResources > 2000)
 	{
-		LOG_ERROR("DNS layer contains more than 300 resources, probably a bad packet. "
+		LOG_ERROR("DNS layer contains more than 2000 resources, probably a bad packet. "
 				"Skipping parsing DNS resources");
 		return;
 	}
@@ -269,8 +280,8 @@ DnsQuery* DnsLayer::getFirstQuery() const
 
 DnsQuery* DnsLayer::getNextQuery(DnsQuery* query) const
 {
-	if (query == NULL 
-		|| query->getNextResource() == NULL 
+	if (query == NULL
+		|| query->getNextResource() == NULL
 		|| query->getType() != DnsQueryType
 		|| query->getNextResource()->getType() != DnsQueryType)
 		return NULL;

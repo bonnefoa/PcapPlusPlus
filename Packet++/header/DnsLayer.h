@@ -135,7 +135,7 @@ namespace pcpp
 		 * other methods of this layer. Notice the return value points directly to the data, so every change will change the actual packet data
 		 * @return A pointer to the @ref dnshdr
 		 */
-		dnshdr* getDnsHeader() const { return (dnshdr*)m_Data; }
+		dnshdr* getDnsHeader() const;
 
 		/**
 		 * Searches for a DNS query by its name field. Notice this method returns only a query which its name equals to the requested name. If
@@ -437,6 +437,7 @@ namespace pcpp
 		DnsResource*  m_FirstAnswer;
 		DnsResource*  m_FirstAuthority;
 		DnsResource*  m_FirstAdditional;
+		bool          m_IsTcp;
 
 		IDnsResource* getFirstResource(DnsResourceType resType) const;
 		void setFirstResource(DnsResourceType resType, IDnsResource* resource);
