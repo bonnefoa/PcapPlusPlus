@@ -547,6 +547,8 @@ namespace pcpp
 		case 993: // IMAPS
 		case 994: // IRCS
 		case 995: // POP3S
+		case 5432: // Postgres
+		case 3443: // HTTPS alt
 			return true;
 		default:
 			return false;
